@@ -54,16 +54,15 @@ workflow {
         .map {it -> [it[0], it[1][0], it[1][1]]}
         .set { input_ch }
 
-    // Point to the folder with the reference database
-    db = file(
-        "${params.db}",
-        checkIfExists: true,
-        type: "dir",
-        glob: false
-    )
+    // Make a channel with the reference database files
+    Channel
+        .fromPath("${params.db}*")
+        .ifEmpty { error "No database files found at ${params.db}*" }
+        .toSortedList()
+        .set {db_ch}
 
     // Run the process on the data
-    metaphlan(input_ch, db)
+    metaphlan(input_ch, db_ch)
 
     // Combine the results
     combine(
