@@ -9,6 +9,8 @@ process metaphlan {
     container "${params.container__metaphlan}"
     // Write output files to the output directory
     publishDir "${params.output}", mode: "copy", overwrite: true
+    cpus "${params.cpus}"
+    memory "${params.memory_gb}.GB"
     
     input:
     // Input from a single file
@@ -32,7 +34,8 @@ metaphlan \
     --index ${params.db.replaceAll(".*/", "")} \
     ${R1},${R2} \
     -o ${sample_name}.metaphlan \
-    --bowtie2out ${sample_name}.bowtie2.bz2
+    --bowtie2out ${sample_name}.bowtie2.bz2 \
+    --nproc ${task.cpus}
 """
 
 }
