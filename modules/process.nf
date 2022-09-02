@@ -14,7 +14,7 @@ process metaphlan {
     // Input from a single file
     tuple val(sample_name), path(R1), path(R2)
     // Reference Database Files
-    path "db/"
+    path "db"
 
     output:
     // Capture all output files
