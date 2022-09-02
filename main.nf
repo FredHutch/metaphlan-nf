@@ -48,7 +48,7 @@ workflow {
     // Make a channel with all of the files from the --input_folder
     Channel
         .fromFilePairs([
-            "${params.input_folder}/*_{1,2}.${params.file_suffix}"
+            "${params.input_folder}/*${params.file_spacer}{1,2}.${params.file_suffix}"
         ])
         .ifEmpty { error "No file pairs found at ${params.input_folder}/*_{1,2}.${params.file_suffix}" }
         .map {it -> [it[0], it[1][0], it[1][1]]}
