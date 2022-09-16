@@ -51,8 +51,8 @@ process combine {
 
     output:
     // Capture all output files
-    path "metaphlan.*.csv.gz", emi: "all"
-    path "metaphlan.long.csv.gz", emit: "long"
+    path "metaphlan.*.csv.gz", emit: all
+    path "metaphlan.long.csv.gz", emit: long
 
 """#!/bin/bash
 
