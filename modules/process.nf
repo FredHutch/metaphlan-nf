@@ -51,7 +51,8 @@ process combine {
 
     output:
     // Capture all output files
-    path "metaphlan.*.csv.gz"
+    path "metaphlan.*.csv.gz", emi: "all"
+    path "metaphlan.long.csv.gz", emit: "long"
 
 """#!/bin/bash
 
@@ -60,4 +61,27 @@ set -e
 combine.py
 """
 
+}
+
+process report {
+    // Docker/Singularity container used to run the process
+    container "${params.container__pandas}"
+    // Write output files to the output directory
+    publishDir "${params.output}", mode: "copy", overwrite: true
+    
+    input:
+    path "metaphlan.long.csv.gz"
+    path "template.jinja"
+
+    output:
+    path "metaphlan_report.html"
+
+"""#!/bin/bash
+
+set -e
+
+python3 -m pip install jinja2
+
+prep.py
+"""
 }

@@ -6,7 +6,7 @@ nextflow.enable.dsl=2
 // All of the default parameters are being set in `nextflow.config`
 
 // Import the process
-include { metaphlan; combine } from './modules/process'
+include { metaphlan; combine; report } from './modules/process'
 
 
 // Function which prints help message text
@@ -112,4 +112,13 @@ workflow {
             .toSortedList()
     )
 
+    // Make a summary report
+    report(
+        combine.out.long,
+        file(
+            "$projectDir/bin/template.jinja",
+            checkIfExists: true,
+            glob: false
+        )
+    )
 }
