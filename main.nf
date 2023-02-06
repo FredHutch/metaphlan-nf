@@ -7,8 +7,8 @@ nextflow.enable.dsl=2
 
 // Import the process
 include { combine; report; concat } from './modules/process'
-include { metaphlan as metaphlan_align } from './modules/process', addParams(publish: false)
-include { metaphlan as metaphlan_call } from './modules/process', addParams(publish: true)
+include { metaphlan as metaphlan_align } from './modules/process' addParams(publish: false)
+include { metaphlan as metaphlan_call } from './modules/process' addParams(publish: true)
 
 
 // Function which prints help message text
