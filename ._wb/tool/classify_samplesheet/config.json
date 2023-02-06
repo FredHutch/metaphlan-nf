@@ -1,0 +1,27 @@
+{
+    "$schema": "https://raw.githubusercontent.com/FredHutch/bash-workbench/main/docs/schema.json",
+    "name": "Taxonomic Classification (Paired FASTQ Samplesheet)",
+    "description": "Perform taxonomic classification on paired-end FASTQs listed in a samplesheet.",
+    "args": {
+        "samplesheet": {
+            "help": "CSV listing input files with header: sample,fastq_1,fastq_2",
+            "wb_type": "file",
+            "required": true
+        },
+        "db": {
+            "help": "Path to reference database (must include the prefix shared across reference files)",
+            "wb_type": "string",
+            "required": true
+        },
+        "cpus": {
+            "help": "Number of CPUs to use per sample.",
+            "wb_type": "integer",
+            "default": 1
+        },
+        "memory_gb": {
+            "help": "Memory (GBs) to use per sample.",
+            "wb_type": "integer",
+            "default": 4
+        }
+    }
+}
