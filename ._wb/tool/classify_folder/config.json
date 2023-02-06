@@ -1,0 +1,37 @@
+{
+    "$schema": "https://raw.githubusercontent.com/FredHutch/bash-workbench/main/docs/schema.json",
+    "name": "Taxonomic Classification (Paired FASTQ Folder)",
+    "description": "Perform taxonomic classification on paired-end FASTQs in a single folder.",
+    "args": {
+        "input_folder": {
+            "help": "Folder containing all input files (Format: SampleName<spacer>(1|2).<suffix>).",
+            "wb_type": "folder",
+            "required": true
+        },
+        "db": {
+            "help": "Path to reference database (must include the prefix shared across reference files)",
+            "wb_type": "string",
+            "required": true
+        },
+        "file_suffix": {
+            "help": "File ending (suffix) for all input FASTQ files.",
+            "wb_type": "string",
+            "default": "fastq.gz"
+        },
+        "file_spacer": {
+            "help": "Spacer characters between the Sample Name and the {1|2} (indicating file pairing).",
+            "wb_type": "string",
+            "default": "_"
+        },
+        "cpus": {
+            "help": "Number of CPUs to use per sample.",
+            "wb_type": "integer",
+            "default": 1
+        },
+        "memory_gb": {
+            "help": "Memory (GBs) to use per sample.",
+            "wb_type": "integer",
+            "default": 4
+        }
+    }
+}
