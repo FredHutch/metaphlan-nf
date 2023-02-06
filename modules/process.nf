@@ -29,6 +29,7 @@ set -e
 echo Processing sample : '${sample_name}'
 
 metaphlan \
+    --help \
     --input_type fastq \
     --bowtie2db db \
     --index ${params.db.replaceAll(".*/", "")} \
