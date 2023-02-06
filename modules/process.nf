@@ -43,7 +43,7 @@ metaphlan \
 }
 
 // Estimate microbial composition from pre-aligned reads
-process metaphlan_align {
+process metaphlan_call {
     // Docker/Singularity container used to run the process
     container "${params.container__metaphlan}"
     // Write output files to the output directory
