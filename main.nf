@@ -123,15 +123,14 @@ workflow {
         }
 
     // If there are any samples with multiple sets of read pairs,
-    // combine those alignments into a single file
-    combine(aln_ch.multiple)
+    // concat those alignments into a single file
+    concat(aln_ch.multiple)
 
     // Run the metaphlan community profiling algorithm on the combined
     // set of (1) samples which only had a single pair of reads, and
     // (2) the merged alignments from samples with multiple pairs of reads
     metaphlan_call(
-        combine
-            .out
+        concat.out
             .mix(
                 aln_ch.out.single
             )
