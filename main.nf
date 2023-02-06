@@ -130,7 +130,7 @@ workflow {
     // set of (1) samples which only had a single pair of reads, and
     // (2) the merged alignments from samples with multiple pairs of reads
     metaphlan_call(
-        concat.out.mix(aln_ch.out.single)
+        concat.out.mix(aln_ch.single)
     )
 
     // Combine the results
