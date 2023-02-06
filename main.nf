@@ -6,7 +6,9 @@ nextflow.enable.dsl=2
 // All of the default parameters are being set in `nextflow.config`
 
 // Import the process
-include { metaphlan; combine; report } from './modules/process'
+include { combine; report; concat } from './modules/process'
+include { metaphlan as metaphlan_align } from './modules/process', addParams(publish: false)
+include { metaphlan as metaphlan_call } from './modules/process', addParams(publish: true)
 
 
 // Function which prints help message text
@@ -102,13 +104,44 @@ workflow {
         .toSortedList()
         .set {db_ch}
 
-    // Run the process on the data
-    metaphlan(input_ch, db_ch)
+    // Run the alignment on the input reads
+    metaphlan_align(input_ch, db_ch)
+
+    // Transform the output to yield a tuple of sample_name, list(alignments.bz2)
+    // Then split the channel based on whether there is just one alignment file
+    // or multiple for a given sample.
+    metaphlan_align
+        .out
+        .alignment
+        .groupTuple()
+        .branch {
+            single: it[1].size() == 1
+            multiple: it[1].size() > 1
+        }
+        .set {
+            aln_ch
+        }
+
+    // If there are any samples with multiple sets of read pairs,
+    // combine those alignments into a single file
+    combine(aln_ch.out.multiple)
+
+    // Run the metaphlan community profiling algorithm on the combined
+    // set of (1) samples which only had a single pair of reads, and
+    // (2) the merged alignments from samples with multiple pairs of reads
+    metaphlan_call(
+        combine
+            .out
+            .mix(
+                aln_ch.out.single
+            )
+    )
 
     // Combine the results
     combine(
-        metaphlan
+        metaphlan_call
             .out
+            .metaphlan
             .toSortedList()
     )
 

@@ -8,7 +8,9 @@ process metaphlan {
     // Docker/Singularity container used to run the process
     container "${params.container__metaphlan}"
     // Write output files to the output directory
-    publishDir "${params.output}", mode: "copy", overwrite: true
+    publishDir "${params.output}/bz2/", pattern: "*.bz2", mode: "copy", overwrite: true, enable: params.publish
+    publishDir "${params.output}/mpl/", pattern: "*.metaphlan", mode: "copy", overwrite: true, enable: params.publish
+    publishDir "${params.output}/biom/", pattern: "*.biom", mode: "copy", overwrite: true, enable: params.publish
     cpus "${params.cpus}"
     memory "${params.memory_gb}.GB"
     
@@ -20,7 +22,9 @@ process metaphlan {
 
     output:
     // Capture all output files
-    path "${sample_name}.metaphlan"
+    tuple val(sample_name), path("${sample_name}.bowtie2.bz2"), emit: alignment
+    path "${sample_name}.metaphlan", emit: metaphlan
+    path "${sample_name}.biom"
 
 """#!/bin/bash
 
@@ -35,6 +39,11 @@ metaphlan \
     ${R1},${R2} \
     -o ${sample_name}.metaphlan \
     --bowtie2out ${sample_name}.bowtie2.bz2 \
+    --biom ${sample_name}.biom \
+    -t rel_ab_w_read_stats \
+    --sample_id_key "${sample_name}" \
+    --sample_id "${sample_name}" \
+    --unclassified_estimation \
     --nproc ${task.cpus}
 """
 
@@ -81,5 +90,19 @@ process report {
 set -e
 
 prep.py
+"""
+}
+
+process concat {
+    container "${params.container__pandas}"
+    
+    input:
+    tuple val(sample_name), path("inputs/*.bz2")
+
+    output:
+    tuple val(sample_name), path("${sample_name}.bz2")
+
+"""
+cat inputs/*.bz2 > "${sample_name}.bz2"
 """
 }
