@@ -6,10 +6,7 @@ nextflow.enable.dsl=2
 // All of the default parameters are being set in `nextflow.config`
 
 // Import the process
-include { combine; report; concat } from './modules/process'
-include { metaphlan as metaphlan_align } from './modules/process' addParams(publish: false)
-include { metaphlan as metaphlan_call } from './modules/process' addParams(publish: true)
-
+include { metaphlan_align; metaphlan_call; combine; report; concat } from './modules/process'
 
 // Function which prints help message text
 def helpMessage() {
