@@ -108,6 +108,24 @@ combine.py
 
 }
 
+process merge {
+    container "${params.container__metaphlan}"
+    // Write output files to the output directory
+    publishDir "${params.output}", mode: "copy", overwrite: true
+    
+    input:
+    path "inputs/*"
+
+    output:
+    // Capture all output files
+    path "merged_abundance_table.txt"
+
+"""
+merge_metaphlan_tables.py inputs/* > merged_abundance_table.tsv
+"""
+
+}
+
 process report {
     // Docker/Singularity container used to run the process
     container "${params.container__pandas}"

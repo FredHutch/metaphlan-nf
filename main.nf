@@ -6,7 +6,7 @@ nextflow.enable.dsl=2
 // All of the default parameters are being set in `nextflow.config`
 
 // Import the process
-include { metaphlan_align; metaphlan_call; combine; report; concat } from './modules/process'
+include { metaphlan_align; metaphlan_call; combine; report; concat; merge } from './modules/process'
 
 // Function which prints help message text
 def helpMessage() {
@@ -133,6 +133,11 @@ workflow {
 
     // Combine the results
     combine(
+        metaphlan_call.out.metaphlan.toSortedList()
+    )
+
+    // Merge tables using the metaphlan utility
+    merge(
         metaphlan_call.out.metaphlan.toSortedList()
     )
 
