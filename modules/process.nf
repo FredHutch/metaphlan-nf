@@ -73,6 +73,8 @@ echo Processing sample : '${sample_name}'
 
 metaphlan \
     --input_type bowtie2out \
+    --bowtie2db db \
+    --index ${params.db.replaceAll(".*/", "")} \
     ${bowtie2out} \
     -o ${sample_name}.metaphlan \
     --biom ${sample_name}.biom \
