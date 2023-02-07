@@ -72,10 +72,8 @@ set -e
 echo Processing sample : '${sample_name}'
 
 metaphlan \
-    ${bowtie2out} \
     --nproc ${task.cpus} \
     --input_type bowtie2out \
-    -o ${sample_name}.metaphlan \
     --biom ${sample_name}.biom \
     -t rel_ab_w_read_stats \
     --unclassified_estimation \
@@ -83,7 +81,9 @@ metaphlan \
     --index ${params.db.replaceAll(".*/", "")} \
     ${bowtie2out} \
     --sample_id_key "${sample_name}" \
-    --sample_id "${sample_name}"
+    --sample_id "${sample_name}" \
+    ${bowtie2out} \
+    ${sample_name}.metaphlan
 
 """
 
