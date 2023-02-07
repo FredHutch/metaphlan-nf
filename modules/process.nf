@@ -79,7 +79,6 @@ metaphlan \
     --unclassified_estimation \
     --bowtie2db db \
     --index ${params.db.replaceAll(".*/", "")} \
-    ${bowtie2out} \
     --sample_id_key "${sample_name}" \
     --sample_id "${sample_name}" \
     ${bowtie2out} \
