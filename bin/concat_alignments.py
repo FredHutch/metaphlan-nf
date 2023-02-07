@@ -33,11 +33,13 @@ def combine_mpl_alignments(
 
 def add_stats(nreads, avg_len, output_handle):
 
-    output_handle.write(f"nreads\t{nreads}\n")
-    output_handle.write(f"avg_read_length\t{avg_len}\n")
+    output_handle.write(f"#nreads\t{nreads}\n")
+    output_handle.write(f"#avg_read_length\t{avg_len}\n")
 
 
 def add_reads(input_fp, output_handle):
+
+    print(f"Processing {input_fp}")
 
     nreads = None
     avg_len = None
@@ -63,8 +65,8 @@ def add_reads(input_fp, output_handle):
                 else:
                     raise Exception(f"Unrecognized tag: {tag}")
 
-        else:
-            output_handle.write(line)
+            else:
+                output_handle.write(line)
 
     if nreads is None or avg_len is None:
 
