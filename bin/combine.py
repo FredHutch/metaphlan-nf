@@ -56,10 +56,13 @@ def read_metaphlan(fp):
                 g="genus",
                 s="species",
                 t="strain"
-            )[n.rsplit("|")[-1][0]]
+            ).get(
+                n.rsplit("|")[-1][0],
+                'unknown'
+            )
         ),
         org_name=df["clade_name"].apply(
-            lambda n: n.rsplit("|")[-1][3:]
+            lambda n: n.rsplit("|")[-1][3:] if len(n.rsplit("|")[-1]) > 3 else n
         )
     )
 
