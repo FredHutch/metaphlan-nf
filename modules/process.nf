@@ -75,11 +75,15 @@ metaphlan \
     ${bowtie2out} \
     --nproc ${task.cpus} \
     --input_type bowtie2out \
-    -o ${sample_name}.metaphlan
-
-#    --biom ${sample_name}.biom \
-#    -t rel_ab_w_read_stats \
-#    --unclassified_estimation \
+    -o ${sample_name}.metaphlan \
+    --biom ${sample_name}.biom \
+    -t rel_ab_w_read_stats \
+    --unclassified_estimation \
+    --bowtie2db db \
+    --index ${params.db.replaceAll(".*/", "")} \
+    ${bowtie2out} \
+    --sample_id_key "${sample_name}" \
+    --sample_id "${sample_name}"
 
 """
 
