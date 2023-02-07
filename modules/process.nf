@@ -160,6 +160,6 @@ process concat {
     tuple val(sample_name), path("${sample_name}.bz2")
 
 """
-cat inputs/*.bz2 > "${sample_name}.bz2"
+concat_alignments.py "${sample_name}.bz2"
 """
 }
