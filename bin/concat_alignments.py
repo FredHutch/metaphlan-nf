@@ -13,7 +13,7 @@ def combine_mpl_alignments(
     running_nreads = 0
     running_avg_len = 0
 
-    with bz2.open(output_file, "w") as output_handle:
+    with bz2.open(output_file, "wt") as output_handle:
 
         for fp in Path(input_folder).iterdir():
 
@@ -42,7 +42,7 @@ def add_reads(input_fp, output_handle):
     nreads = None
     avg_len = None
 
-    with bz2.open(input_fp, "r") as input_handle:
+    with bz2.open(input_fp, "rt") as input_handle:
 
         for line in input_handle:
 
