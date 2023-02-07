@@ -120,7 +120,7 @@ process merge {
 
     output:
     // Capture all output files
-    path "merged_abundance_table.txt"
+    path "merged_abundance_table.tsv"
 
 """
 merge_metaphlan_tables.py inputs/* > merged_abundance_table.tsv
