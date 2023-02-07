@@ -61,7 +61,6 @@ process metaphlan_call {
 
     output:
     // Capture all output files
-    tuple val(sample_name), path("${sample_name}.bowtie2.bz2"), emit: alignment
     path "${sample_name}.metaphlan", emit: metaphlan
     path "${sample_name}.biom"
 
