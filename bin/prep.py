@@ -8,7 +8,7 @@ print(f"Reading in {csv_fp}")
 df = pd.read_csv(csv_fp)
 print("Removing unused columns")
 df = df.drop(
-    columns=["clade_name", "NCBI_tax_id", "additional_species"]
+    columns=["clade_name", "clade_taxid"]
 )
 
 print("Loading the template")
