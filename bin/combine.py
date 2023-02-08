@@ -33,6 +33,55 @@ def combine_metaphlan(fp_dict):
     print("Done")
 
 
+def get_org_name(clade_name: str):
+
+    if clade_name == "UNCLASSIFIED":
+        return
+
+    else:
+
+        # Get the last name in the list
+        org = clade_name.rsplit("|", 1)[-1]
+
+        # The name should always start with X__
+        msg = f"Clade name does not fit the expected pattern: {clade_name}"
+        assert len(org) > 3, msg
+
+        return org[3:]
+
+
+def get_tax_level(clade_name: str):
+
+    if clade_name == "UNCLASSIFIED":
+        return
+
+    else:
+
+        # Get the last name in the list
+        org = clade_name.rsplit("|", 1)[-1]
+
+        # The name should always start with X__
+        msg = f"Clade name does not fit the expected pattern: {clade_name}"
+        assert len(org) > 3, msg
+
+        tax_level = dict(
+            k="kingdom",
+            p="phylum",
+            c="class",
+            o="order",
+            f="family",
+            g="genus",
+            s="species",
+            t="strain"
+        ).get(
+            org[0]
+        )
+
+        assert tax_level is not None, msg
+
+        return tax_level
+
+
 def read_metaphlan(fp):
 
     # Read the table
@@ -41,25 +90,22 @@ def read_metaphlan(fp):
         sep="\t",
         comment="#",
         header=None,
-        names=["clade_name", "NCBI_tax_id", "relative_abundance", "additional_species"]
+        names=[
+            "clade_name",
+            "clade_taxid",
+            "relative_abundance",
+            "coverage",
+            "estimated_number_of_reads_from_the_clade"
+        ]
     )
 
     # Add the taxonomic level
     df = df.assign(
         level=df["clade_name"].apply(
-            lambda n: dict(
-                k="kingdom",
-                p="phylum",
-                c="class",
-                o="order",
-                f="family",
-                g="genus",
-                s="species",
-                t="strain"
-            )[n.rsplit("|")[-1][0]]
+            get_tax_level
         ),
         org_name=df["clade_name"].apply(
-            lambda n: n.rsplit("|")[-1][3:]
+            get_org_name
         )
     )
 
