@@ -52,7 +52,7 @@ def get_org_name(clade_name: str):
 
 def get_tax_level(clade_name: str):
 
-    if clade_name == "UNCLASSIFIED":
+    if clade_name.upper() == "UNCLASSIFIED":
         return
 
     else:
