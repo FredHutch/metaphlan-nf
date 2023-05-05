@@ -130,22 +130,22 @@ merge_metaphlan_tables.py inputs/* > merged_abundance_table.tsv
 
 process report {
     // Docker/Singularity container used to run the process
-    container "${params.container__pandas}"
+    container "${params.container__lf}"
     // Write output files to the output directory
     publishDir "${params.output}", mode: "copy", overwrite: true
     
     input:
-    path "metaphlan.long.csv.gz"
-    path "template.jinja"
+    path "merged_abundance_table.tsv"
+    path "samplesheet/"
 
     output:
-    path "metaphlan_report.html"
+    path "MicrobiomeExplorer.html"
 
 """#!/bin/bash
 
 set -e
 
-prep.py
+make_microbiome_explorer.py
 """
 }
 

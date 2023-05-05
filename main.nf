@@ -64,12 +64,18 @@ workflow {
 
     // If the samplesheet input was specified
     if ( params.samplesheet ){
+
+        // Instantiate the samplesheet file object (channel)
         Channel
             .fromPath(
                 "${params.samplesheet}",
                 checkIfExists: true,
                 glob: false
             )
+            .set { samplesheet }
+
+        // Parse the inputs from the samplesheet
+        samplesheet
             .splitCsv(
                 header: true
             )
@@ -82,6 +88,9 @@ workflow {
             }
             .set { input_ch }
     } else {
+
+        // Make an empty samplesheet file channel
+        Channel.empty().set{ samplesheet }
 
         // Make a channel with all of the files from the --input_folder
         Channel
@@ -144,10 +153,6 @@ workflow {
     // Make a summary report
     report(
         combine.out.long,
-        file(
-            "$projectDir/bin/template.jinja",
-            checkIfExists: true,
-            glob: false
-        )
+        samplesheet.toSortedList()
     )
 }
