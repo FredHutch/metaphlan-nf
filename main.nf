@@ -152,7 +152,7 @@ workflow {
 
     // Make a summary report
     report(
-        combine.out.long,
+        merge.out,
         samplesheet.toSortedList()
     )
 }
