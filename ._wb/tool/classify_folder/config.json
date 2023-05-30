@@ -16,7 +16,7 @@
         "file_suffix": {
             "help": "File ending (suffix) for all input FASTQ files.",
             "wb_type": "string",
-            "default": "fastq.gz"
+            "default": ".fastq.gz"
         },
         "file_spacer": {
             "help": "Spacer characters between the Sample Name and the {1|2} (indicating file pairing).",
