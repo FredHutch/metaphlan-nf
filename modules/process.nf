@@ -13,8 +13,8 @@ process metaphlan_align {
     memory "${params.memory_gb}.GB"
     
     input:
-    // Input from a pair of FASTQ files
-    tuple val(sample_name), path(R1), path(R2)
+    // Input from a FASTQ file
+    tuple val(sample_name), path(fastq)
     // Reference Database Files
     path "db/"
 
@@ -32,7 +32,7 @@ metaphlan \
     --input_type fastq \
     --bowtie2db db \
     --index ${params.db.replaceAll(".*/", "")} \
-    ${R1},${R2} \
+    ${fastq} \
     -o ${sample_name}.metaphlan \
     --bowtie2out ${sample_name}.bowtie2.bz2 \
     --sample_id_key "${sample_name}" \

@@ -62,9 +62,16 @@ workflow {
         exit 1
     }
 
+    // Make a channel with the reference database files
+    Channel
+        .fromPath("${params.db}*")
+        .ifEmpty { error "No database files found at ${params.db}*" }
+        .toSortedList()
+        .set {db_ch}
+
     // If the samplesheet input was specified
     if ( params.samplesheet ){
-        Channel
+        samplesheet = Channel
             .fromPath(
                 "${params.samplesheet}",
                 checkIfExists: true,
@@ -73,33 +80,75 @@ workflow {
             .splitCsv(
                 header: true
             )
+            .branch {
+                single: it.fastq_2 == null || it.fastq_2 == ""
+                paired: true
+            }
+
+        // Paired-end R1
+        samplesheet
+            .paired
             .map {
                 row -> [
                     row.sample,
-                    file(row.fastq_1, checkIfExists: true),
+                    file(row.fastq_1, checkIfExists: true)
+                ]
+            }
+            .set {
+                paired_r1
+            }
+
+        // Paired-end R2
+        samplesheet
+            .paired
+            .map {
+                row -> [
+                    row.sample,
                     file(row.fastq_2, checkIfExists: true)
                 ]
             }
+            .set {
+                paired_r2
+            }
+
+        // Single-end
+        samplesheet
+            .single
+            .map {
+                row -> [
+                    row.sample,
+                    file(row.fastq_1, checkIfExists: true)
+                ]
+            }
+            .set {
+                single
+            }
+
+        paired_r1
+            .mix (
+                paired_r2
+            )
+            .mix (
+                single
+            )
             .set { input_ch }
+
     } else {
 
         // Make a channel with all of the files from the --input_folder
-        Channel
+        inputs = Channel
             .fromFilePairs([
                 "${params.input_folder}/*${params.file_spacer}{1,2}${params.file_suffix}"
             ])
             .ifEmpty { error "No file pairs found at ${params.input_folder}/*${params.file_spacer}{1,2}${params.file_suffix}" }
-            .map {it -> [it[0], it[1][0], it[1][1]]}
+
+        inputs.map {it -> [it[0], it[1][0]]}
+            mix (
+                inputs.map {it -> [it[0], it[1][1]]}
+            )
             .set { input_ch }
 
     }
-
-    // Make a channel with the reference database files
-    Channel
-        .fromPath("${params.db}*")
-        .ifEmpty { error "No database files found at ${params.db}*" }
-        .toSortedList()
-        .set {db_ch}
 
     // Run the alignment on the input reads
     metaphlan_align(input_ch, db_ch)
