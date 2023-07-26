@@ -6,7 +6,7 @@ nextflow.enable.dsl=2
 // All of the default parameters are being set in `nextflow.config`
 
 // Import the process
-include { metaphlan_align; metaphlan_call; combine; report; concat; merge } from './modules/process'
+include { metaphlan_align; metaphlan_call; combine; report; concat_bwt; concat_sam; merge } from './modules/process'
 
 // Function which prints help message text
 def helpMessage() {
@@ -158,25 +158,38 @@ workflow {
     // or multiple for a given sample.
     metaphlan_align
         .out
-        .alignment
+        .bwt
         .groupTuple()
         .branch {
             single: it[1].size() == 1
             multiple: it[1].size() > 1
         }
         .set {
-            aln_ch
+            bwt_ch
+        }
+
+    metaphlan_align
+        .out
+        .sam
+        .groupTuple()
+        .branch {
+            single: it[1].size() == 1
+            multiple: it[1].size() > 1
+        }
+        .set {
+            sam_ch
         }
 
     // If there are any samples with multiple sets of read pairs,
     // concat those alignments into a single file
-    concat(aln_ch.multiple)
+    concat_bwt(bwt_ch.multiple)
+    concat_sam(sam_ch.multiple)
 
     // Run the metaphlan community profiling algorithm on the combined
     // set of (1) samples which only had a single pair of reads, and
     // (2) the merged alignments from samples with multiple pairs of reads
     metaphlan_call(
-        concat.out.mix(aln_ch.single),
+        concat_bwt.out.mix(bwt_ch.single),
         db_ch
     )
 

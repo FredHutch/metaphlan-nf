@@ -20,7 +20,8 @@ process metaphlan_align {
 
     output:
     // Capture just the aligned reads
-    tuple val(sample_name), path("${sample_name}.bowtie2.bz2"), emit: alignment
+    tuple val(sample_name), path("${sample_name}.bowtie2.bz2"), emit: bwt
+    tuple val(sample_name), path("${sample_name}.sam.bz2"), emit: sam
 
 """#!/bin/bash
 
@@ -34,6 +35,7 @@ metaphlan \
     --index ${params.db.replaceAll(".*/", "")} \
     ${fastq} \
     -o ${sample_name}.metaphlan \
+    -s ${sample_name}.sam.bz2 \
     --bowtie2out ${sample_name}.bowtie2.bz2 \
     --sample_id_key "${sample_name}" \
     --sample_id "${sample_name}" \
@@ -47,7 +49,6 @@ process metaphlan_call {
     // Docker/Singularity container used to run the process
     container "${params.container__metaphlan}"
     // Write output files to the output directory
-    publishDir "${params.output}/bz2/", pattern: "*.bz2", mode: "copy", overwrite: true
     publishDir "${params.output}/mpl/", pattern: "*.metaphlan", mode: "copy", overwrite: true
     publishDir "${params.output}/biom/", pattern: "*.biom", mode: "copy", overwrite: true
     cpus "${params.cpus}"
@@ -149,16 +150,186 @@ prep.py
 """
 }
 
-process concat {
+process concat_sam {
+    container "${params.container__samtools}"
+    publishDir "${params.output}/sam/", mode: "copy", overwrite: true
+    
+    input:
+    tuple val(sample_name), path("inputs/*.sam.bz2")
+
+    output:
+    tuple val(sample_name), path("${sample_name}.sam.bz2")
+
+"""#!/bin/bash
+set -e
+echo STARTING
+find .
+if (( \$(find inputs -name '*.sam.bz2' | wc -l) == 1 )); then
+    echo "Only a single SAM file found"
+    cp inputs/*.sam.bz2 ./
+else
+    echo "Multiple SAM files found"
+    echo "Decompressing SAM files"
+    bunzip2 inputs/*.bz2
+    echo "Merging SAM files"
+    samtools merge "${sample_name}.sam" inputs/*.sam
+    find .
+    echo "Compressing merged SAM file"
+    bzip2 "${sample_name}.sam"
+fi
+echo DONE
+find .
+"""
+}
+
+process concat_bwt {
+    container "${params.container__pandas}"
+    publishDir "${params.output}/bowtie2/", mode: "copy", overwrite: true
+    
+    input:
+    tuple val(sample_name), path("inputs/*.bowtie2.bz2")
+
+    output:
+    tuple val(sample_name), path("${sample_name}.bowtie2.bz2"), emit: bowtie
+
+"""#!/bin/bash
+set -e
+concat_alignments.py "${sample_name}.bowtie2.bz2"
+"""
+}
+
+process sample2markers {
+    container "${params.container__metaphlan}"
+    publishDir "${params.output}", mode: "copy", overwrite: true
+    
+    input:
+    path "db/"
+    path "sams/"
+
+    output:
+    path "consensus_markers/*"
+
+"""#!/bin/bash
+set -e
+mkdir -p consensus_markers
+sample2markers.py -d db/ -i sams/*.sam.bz2 -o consensus_markers -n ${task.cpus}
+"""
+}
+
+process extract_markers {
+    container "${params.container__metaphlan}"
+    publishDir "${params.output}", mode: "copy", overwrite: true
+    
+    input:
+    path "db/"
+    val clade
+
+    output:
+    tuple val(clade), path("db_markers/*")
+
+"""#!/bin/bash
+set -e
+mkdir -p db_markers
+extract_markers.py -d db/*.pkl -c ${clade} -o db_markers/
+"""
+}
+
+process strainphlan {
+    container "${params.container__metaphlan}"
+    publishDir "${params.output}", mode: "copy", overwrite: true
+    
+    input:
+    path "db/"
+    path "consensus_markers/"
+    tuple val(clade), path(db_markers)
+    path "reference_genomes/"
+
+    output:
+    path "${clade}/*", emit: all
+    tuple val(clade), path("${clade}/RAxML_bestTree.*.tre"), emit: tre
+
+"""#!/bin/bash
+set -e
+mkdir -p ${clade}
+if [ -d reference_genomes ] && (( \$(find reference_genomes | wc -l) > 0 )); then
+    FLAGS="-r reference_genomes/*"
+else
+    FLAGS=""
+fi
+
+strainphlan \
+    -s consensus_markers/*.pkl \
+    -d db/*.pkl \
+    -m ${db_markers} \
+    -o ${clade} \
+    -n ${task.cpus} \
+    -c ${clade} \
+    --mutation_rates \
+    \$FLAGS \
+"""
+}
+
+process get_metadata {
     container "${params.container__pandas}"
     
     input:
-    tuple val(sample_name), path("inputs/*.bz2")
+    path "metadata.tsv"
 
     output:
-    tuple val(sample_name), path("${sample_name}.bz2")
+    path "metadata_categories.txt"
+
+    script:
+"""
+set -e
+get_metadata_categories.py
+"""
+}
+
+process add_metadata {
+    container "${params.container__metaphlan}"
+    publishDir "${params.output}/${clade}/${metadata_category}/", mode: "copy", overwrite: true, pattern: "*.tre.metadata"
+    
+    input:
+    tuple val(clade), path(tre), val(metadata_category), path("metadata.tsv")
+
+    output:
+    tuple val(clade), path("${tre}.*"), val(metadata_category)
 
 """
-concat_alignments.py "${sample_name}.bz2"
+echo "Adding metadata for ${metadata_category} to ${tre}"
+add_metadata_tree.py \
+    -t ${tre} \
+    -f metadata.tsv \
+    -m "${metadata_category}"
+
+plot_tree_graphlan.py \
+    -t ${tre}.metadata \
+    -m "${metadata_category}" || true
+"""
+}
+
+process plot_metadata {
+    container "${params.container__graphlan}"
+    publishDir "${params.output}/${clade}/${metadata_category}", mode: "copy", overwrite: true
+    
+    input:
+    tuple val(clade), path("*"), val(metadata_category)
+
+    output:
+    path "${clade}.${metadata_category}*"
+
+"""#!/bin/bash
+set -e
+echo "Making a plot for ${metadata_category} from ${clade}"
+
+graphlan_annotate.py \
+    --annot *.annot \
+    *.graphlantree
+
+for suffix in pdf png svg; do
+    graphlan.py \
+        *.graphlantree \
+        "${clade}.${metadata_category}.\$suffix"
+done
 """
 }

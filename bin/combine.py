@@ -4,8 +4,9 @@
 import pandas as pd
 import os
 
+
 def combine_metaphlan(fp_dict):
-    
+
     # Join all of the results together
     df = pd.concat([
         read_metaphlan(fp).assign(name=name)
@@ -110,6 +111,7 @@ def read_metaphlan(fp):
     )
 
     return df
+
 
 if __name__ == "__main__":
     combine_metaphlan(

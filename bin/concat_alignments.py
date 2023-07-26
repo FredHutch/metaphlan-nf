@@ -4,6 +4,7 @@ import bz2
 from pathlib import Path
 import sys
 
+
 def combine_mpl_alignments(
     input_folder="inputs",
     output_file="metaphlan.bz2"
@@ -17,7 +18,7 @@ def combine_mpl_alignments(
 
         for fp in Path(input_folder).iterdir():
 
-            if fp.name.endswith(".bz2"):
+            if fp.name.endswith(".bowtie2.bz2"):
 
                 nreads, avg_len = add_reads(fp, output_handle)
 
