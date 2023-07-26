@@ -141,9 +141,9 @@ workflow {
                 "${params.input_folder}/*${params.file_spacer}{1,2}${params.file_suffix}"
             ])
             .ifEmpty { error "No file pairs found at ${params.input_folder}/*${params.file_spacer}{1,2}${params.file_suffix}" }
-
-        inputs.map {it -> [it[0], it[1][0]]}
-            mix (
+        
+        inputs.map { it -> [it[0], it[1][0]] }
+            .mix (
                 inputs.map {it -> [it[0], it[1][1]]}
             )
             .set { input_ch }
