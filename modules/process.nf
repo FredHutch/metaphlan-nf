@@ -3,8 +3,49 @@
 // Using DSL-2
 nextflow.enable.dsl=2
 
-// Align reads with metaphlan to estimate microbial composition
-process metaphlan_align {
+// Align paired-end reads with metaphlan to estimate microbial composition
+process metaphlan_paired {
+    // Docker/Singularity container used to run the process
+    container "${params.container__metaphlan}"
+
+    // Resources used
+    cpus "${params.cpus}"
+    memory "${params.memory_gb}.GB"
+    
+    input:
+    // Input from a pair of FASTQ files
+    tuple val(sample_name), path(R1), path(R2)
+    // Reference Database Files
+    path "db/"
+
+    output:
+    // Capture just the aligned reads
+    tuple val(sample_name), path("${sample_name}.bowtie2.bz2"), emit: bwt
+    tuple val(sample_name), path("${sample_name}.sam.bz2"), emit: sam
+
+"""#!/bin/bash
+
+set -e
+
+echo Processing sample : '${sample_name}'
+
+metaphlan \
+    --input_type fastq \
+    --bowtie2db db \
+    --index ${params.db.replaceAll(".*/", "")} \
+    ${R1},${R2} \
+    -o ${sample_name}.metaphlan \
+    -s ${sample_name}.sam.bz2 \
+    --bowtie2out ${sample_name}.bowtie2.bz2 \
+    --sample_id_key "${sample_name}" \
+    --sample_id "${sample_name}" \
+    --nproc ${task.cpus}
+"""
+
+}
+
+// Align single-end reads with metaphlan to estimate microbial composition
+process metaphlan_single {
     // Docker/Singularity container used to run the process
     container "${params.container__metaphlan}"
 

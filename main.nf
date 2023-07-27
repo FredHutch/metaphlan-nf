@@ -6,7 +6,16 @@ nextflow.enable.dsl=2
 // All of the default parameters are being set in `nextflow.config`
 
 // Import the process
-include { metaphlan_align; metaphlan_call; combine; report; concat_bwt; concat_sam; merge } from './modules/process'
+include {
+    metaphlan_paired;
+    metaphlan_single;
+    metaphlan_call;
+    combine;
+    report;
+    concat_bwt;
+    concat_sam;
+    merge
+} from './modules/process'
 
 // Function which prints help message text
 def helpMessage() {
@@ -85,53 +94,38 @@ workflow {
                 paired: true
             }
 
-        // Paired-end R1
-        samplesheet
-            .paired
-            .map {
-                row -> [
-                    row.sample,
-                    file(row.fastq_1, checkIfExists: true)
-                ]
-            }
-            .set {
-                paired_r1
-            }
-
-        // Paired-end R2
-        samplesheet
-            .paired
-            .map {
-                row -> [
-                    row.sample,
-                    file(row.fastq_2, checkIfExists: true)
-                ]
-            }
-            .set {
-                paired_r2
-            }
+        // Paired-end alignment
+        metaphlan_paired(
+            samplesheet
+                .paired
+                .map {
+                    row -> [
+                        row.sample,
+                        file(row.fastq_1, checkIfExists: true),
+                        file(row.fastq_2, checkIfExists: true)
+                    ]
+                },
+            db_ch
+        )
 
         // Single-end
-        samplesheet
-            .single
-            .map {
-                row -> [
-                    row.sample,
-                    file(row.fastq_1, checkIfExists: true)
-                ]
-            }
-            .set {
-                single
-            }
+        metaphlan_single(
+            samplesheet
+                .single
+                .map {
+                    row -> [
+                        row.sample,
+                        file(row.fastq_1, checkIfExists: true)
+                    ]
+                },
+            db_ch
+        )
 
-        paired_r1
-            .mix (
-                paired_r2
-            )
-            .mix (
-                single
-            )
-            .set { input_ch }
+        bwt_ch = metaphlan_paired.out.bwt
+            .mix(metaphlan_single.out.bwt)
+
+        sam_ch = metaphlan_paired.out.sam
+            .mix(metaphlan_single.out.sam)
 
     } else {
 
@@ -141,24 +135,24 @@ workflow {
                 "${params.input_folder}/*${params.file_spacer}{1,2}${params.file_suffix}"
             ])
             .ifEmpty { error "No file pairs found at ${params.input_folder}/*${params.file_spacer}{1,2}${params.file_suffix}" }
-        
-        inputs.map { it -> [it[0], it[1][0]] }
-            .mix (
-                inputs.map {it -> [it[0], it[1][1]]}
-            )
-            .set { input_ch }
+
+        // Run paired-end alignment using metaphlan
+        metaphlan_paired(
+            inputs.map {
+                it -> [it[0], it[1][0], it[1][1]]
+            },
+            db_ch
+        )
+
+        bwt_ch = metaphlan_paired.out.bwt
+        sam_ch = metaphlan_paired.out.sam
 
     }
-
-    // Run the alignment on the input reads
-    metaphlan_align(input_ch, db_ch)
 
     // Transform the output to yield a tuple of sample_name, list(alignments.bz2)
     // Then split the channel based on whether there is just one alignment file
     // or multiple for a given sample.
-    metaphlan_align
-        .out
-        .bwt
+    bwt_ch
         .groupTuple()
         .branch {
             single: it[1].size() == 1
@@ -168,9 +162,7 @@ workflow {
             bwt_ch
         }
 
-    metaphlan_align
-        .out
-        .sam
+    sam_ch
         .groupTuple()
         .branch {
             single: it[1].size() == 1
