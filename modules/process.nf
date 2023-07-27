@@ -201,6 +201,8 @@ concat_alignments.py "${sample_name}.bowtie2.bz2"
 process sample2markers {
     container "${params.container__metaphlan}"
     publishDir "${params.output}", mode: "copy", overwrite: true
+    cpus "${params.cpus}"
+    memory "${params.memory_gb}.GB"
     
     input:
     path "db/"
