@@ -247,7 +247,7 @@ process sample2markers {
     
     input:
     path "db/"
-    path "sams/"
+    path sam
 
     output:
     path "consensus_markers/*", optional: true
@@ -255,11 +255,32 @@ process sample2markers {
 """#!/bin/bash
 set -e
 
+# Create a sorted BAM file for the input
+echo "\$(date) Converting to sorted BAM"
+bunzip2 -c "${sam}" | samtools view -bS | samtools sort > input.bam
+samtools index input.bam
+
 # Only produce outputs if the inputs contain reads to start with
-if (( \$(bunzip2 -c sams/*.sam.bz2 | grep -v '^@' | wc -l) > 1 )); then
+if (( \$(samtools view input.bam | wc -l) > 1 )); then
 
     mkdir -p consensus_markers
-    sample2markers.py -d db/ -i sams/*.sam.bz2 -o consensus_markers -n ${task.cpus}
+    echo "\$(date) Running sample2markers.py"
+    sample2markers.py \
+        -d db/ \
+        -i input.bam \
+        --input_format bam \
+        --sorted \
+        -o consensus_markers \
+        -n ${task.cpus} \
+        --breadth_threshold ${params.breadth_threshold} \
+        --min_reads_aligning ${params.min_reads_aligning} \
+        --min_base_coverage ${params.min_base_coverage} \
+        --min_base_quality ${params.min_base_quality} \
+        --min_mapping_quality ${params.min_mapping_quality}
+
+else
+
+    echo "\$(date) No alignments found -- skipping"
 
 fi
 """
