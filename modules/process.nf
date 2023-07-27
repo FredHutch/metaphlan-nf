@@ -209,12 +209,18 @@ process sample2markers {
     path "sams/"
 
     output:
-    path "consensus_markers/*"
+    path "consensus_markers/*", optional: true
 
 """#!/bin/bash
 set -e
-mkdir -p consensus_markers
-sample2markers.py -d db/ -i sams/*.sam.bz2 -o consensus_markers -n ${task.cpus}
+
+# Only produce outputs if the inputs contain reads to start with
+if (( \$(bunzip2 -c sams/*.sam.bz2 | grep -v '^@' | wc -l) > 1 )); then
+
+    mkdir -p consensus_markers
+    sample2markers.py -d db/ -i sams/*.sam.bz2 -o consensus_markers -n ${task.cpus}
+
+fi
 """
 }
 
