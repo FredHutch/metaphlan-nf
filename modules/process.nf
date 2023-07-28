@@ -261,7 +261,7 @@ NAME="\$(echo ${sam} | sed 's/.sam.bz2//')"
 # Create a sorted BAM file for the input
 echo "\$(date) Converting to sorted BAM"
 bunzip2 -c "${sam}" | samtools view -bS | samtools sort > \$NAME.bam
-samtools index input.bam
+samtools index \$NAME.bam
 
 # Only produce outputs if the inputs contain reads to start with
 if (( \$(samtools view \$NAME.bam | wc -l) > 1 )); then
