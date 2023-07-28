@@ -255,19 +255,22 @@ process sample2markers {
 """#!/bin/bash
 set -e
 
+# Get the base name of the input file
+NAME="\$(echo ${sam} | sed 's/.sam.bz2//')"
+
 # Create a sorted BAM file for the input
 echo "\$(date) Converting to sorted BAM"
-bunzip2 -c "${sam}" | samtools view -bS | samtools sort > input.bam
+bunzip2 -c "${sam}" | samtools view -bS | samtools sort > \$NAME.bam
 samtools index input.bam
 
 # Only produce outputs if the inputs contain reads to start with
-if (( \$(samtools view input.bam | wc -l) > 1 )); then
+if (( \$(samtools view \$NAME.bam | wc -l) > 1 )); then
 
     mkdir -p consensus_markers
     echo "\$(date) Running sample2markers.py"
     sample2markers.py \
         -d db/ \
-        -i input.bam \
+        -i \$NAME.bam \
         --input_format bam \
         --sorted \
         -o consensus_markers \
