@@ -327,7 +327,8 @@ process strainphlan {
     path "db/"
     path "consensus_markers/"
     tuple val(clade), path(db_markers)
-    path "reference_genomes/"
+    path "reference_genomes/",
+    path "phylophlan.config"
 
     output:
     path "${clade}/*", emit: all
@@ -354,6 +355,7 @@ strainphlan \
     --non_interactive \
     --mutation_rates \
     --tmp local_tmp \
+    --phylophlan_configuration phylophlan.config \
     \$FLAGS \
 """
 }

@@ -97,11 +97,18 @@ workflow {
         reference_genomes = Channel.empty()
     }
 
+    // Get the phylophlan configuration
+    phylophlan_config = file(
+        "${projectDir}/lib/phylophlan.config",
+        checkIfExists: true
+    )
+
     strainphlan(
         db_ch,
         sample2markers.out.toSortedList(),
         extract_markers.out,
-        reference_genomes.toSortedList()
+        reference_genomes.toSortedList(),
+        phylophlan_config
     )
 
     if (params.metadata){
