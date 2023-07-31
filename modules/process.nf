@@ -357,6 +357,7 @@ strainphlan \
     --tmp local_tmp \
     --phylophlan_configuration phylophlan.config \
     --abs_n_markers_thres \
+    --breadth_thres 100 \
     --marker_in_n_samples ${params.marker_in_n_samples} \
     --sample_with_n_markers ${params.sample_with_n_markers} \
     \$FLAGS \
