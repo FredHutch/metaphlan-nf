@@ -327,7 +327,7 @@ process strainphlan {
     path "db/"
     path "consensus_markers/"
     tuple val(clade), path(db_markers)
-    path "reference_genomes/",
+    path "reference_genomes/"
     path "phylophlan.config"
 
     output:
