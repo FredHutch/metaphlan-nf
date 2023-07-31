@@ -149,39 +149,16 @@ workflow {
 
     }
 
-    // Transform the output to yield a tuple of sample_name, list(alignments.bz2)
-    // Then split the channel based on whether there is just one alignment file
-    // or multiple for a given sample.
-    bwt_ch
-        .groupTuple()
-        .branch {
-            single: it[1].size() == 1
-            multiple: it[1].size() > 1
-        }
-        .set {
-            bwt_ch
-        }
-
-    sam_ch
-        .groupTuple()
-        .branch {
-            single: it[1].size() == 1
-            multiple: it[1].size() > 1
-        }
-        .set {
-            sam_ch
-        }
-
     // If there are any samples with multiple sets of read pairs,
     // concat those alignments into a single file
-    concat_bwt(bwt_ch.multiple)
-    concat_sam(sam_ch.multiple)
+    concat_bwt(bwt_ch.groupTuple())
+    concat_sam(sam_ch.groupTuple())
 
     // Run the metaphlan community profiling algorithm on the combined
     // set of (1) samples which only had a single pair of reads, and
     // (2) the merged alignments from samples with multiple pairs of reads
     metaphlan_call(
-        concat_bwt.out.mix(bwt_ch.single),
+        concat_bwt.out,
         db_ch
     )
 

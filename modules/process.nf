@@ -196,7 +196,7 @@ process concat_sam {
     publishDir "${params.output}/sam/", mode: "copy", overwrite: true
     
     input:
-    tuple val(sample_name), path("inputs/*.sam.bz2")
+    tuple val(sample_name), path("inputs/")
 
     output:
     tuple val(sample_name), path("${sample_name}.sam.bz2")
@@ -207,7 +207,7 @@ echo STARTING
 find .
 if (( \$(find inputs -name '*.sam.bz2' | wc -l) == 1 )); then
     echo "Only a single SAM file found"
-    cp inputs/*.sam.bz2 ./
+    cp inputs/*.sam.bz2 "${sample_name}.sam.bz2"
 else
     echo "Multiple SAM files found"
     echo "Decompressing SAM files"
@@ -228,14 +228,24 @@ process concat_bwt {
     publishDir "${params.output}/bowtie2/", mode: "copy", overwrite: true
     
     input:
-    tuple val(sample_name), path("inputs/*.bowtie2.bz2")
+    tuple val(sample_name), path("inputs/")
 
     output:
     tuple val(sample_name), path("${sample_name}.bowtie2.bz2"), emit: bowtie
 
 """#!/bin/bash
 set -e
-concat_alignments.py "${sample_name}.bowtie2.bz2"
+echo STARTING
+find .
+if (( \$(find inputs -name '*.bowtie2.bz2' | wc -l) == 1 )); then
+    echo "Only a single .bowtie2.bz2 file found"
+    cp inputs/*.bowtie2.bz2 "${sample_name}.bowtie2.bz2"
+else
+    echo "Multiple .bowtie2.bz2 files found"
+    concat_alignments.py "${sample_name}.bowtie2.bz2"
+fi
+echo DONE
+find .
 """
 }
 
