@@ -320,7 +320,9 @@ extract_markers.py -d db/*.pkl -c ${clade} -o db_markers/
 process strainphlan {
     container "${params.container__metaphlan}"
     publishDir "${params.output}", mode: "copy", overwrite: true
-    
+    cpus "${params.cpus}"
+    memory "${params.memory_gb}.GB"
+
     input:
     path "db/"
     path "consensus_markers/"
