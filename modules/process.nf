@@ -342,6 +342,8 @@ else
     FLAGS=""
 fi
 
+mkdir -p local_tmp
+
 strainphlan \
     -s consensus_markers/*.pkl \
     -d db/*.pkl \
@@ -349,7 +351,9 @@ strainphlan \
     -o ${clade} \
     -n ${task.cpus} \
     -c ${clade} \
+    --non_interactive \
     --mutation_rates \
+    --tmp local_tmp \
     \$FLAGS \
 """
 }
