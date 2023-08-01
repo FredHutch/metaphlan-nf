@@ -332,7 +332,7 @@ process strainphlan {
 
     output:
     path "${clade}/*", emit: all
-    tuple val(clade), path("${clade}/RAxML_bestTree.*.tre"), emit: tre
+    tuple val(clade), path("${clade}/*.tre"), emit: tre
 
 """#!/bin/bash
 set -e
