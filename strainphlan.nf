@@ -20,7 +20,7 @@ def helpMessage() {
     log.info"""
 Usage:
 
-nextflow run FredHutch/metaphlan-nf <ARGUMENTS>
+nextflow run FredHutch/metaphlan-nf/strainphlan.nf <ARGUMENTS>
 
 Arguments:
 
@@ -35,6 +35,25 @@ Arguments:
   Optional Reference Genomes
   --reference_genomes   Comma-delimited list of reference genomes to include
                         (accepts wildcard globs)
+
+  Optional Metadata Table
+  --metadata        Path to TSV containing sample metadata
+                    First column must have the header: sampleID
+
+  StrainPhlAn Parameters
+  --breadth_threshold   Threshold defining the minimum breadth of coverage
+                        for the markers as a percentage value (default: 80)
+  --min_reads_aligning  Minimum number of reads aligning to a clade
+                        per sample (default: 8)
+  --min_base_coverage   Minimum threshold for the number of reads aligning
+                        to a given position on the marker sequence (default: 1)
+  --min_base_quality    Minimum base quality for alignment (default: 30)
+  --min_mapping_quality Minimum mapping quality score (default: 10)
+  --marker_in_n_samples Minimum number of samples required to keep a marker
+                        (default: 2, note this is an absolute number)
+  --sample_with_n_markers
+                        Minimum percentage of markers required to retain
+                        a sample (default: 80, note this is a percentage)
 
   Output Location:
   --output          Folder for output files
