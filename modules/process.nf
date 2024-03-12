@@ -196,7 +196,7 @@ process concat_sam {
     publishDir "${params.output}/sam/", mode: "copy", overwrite: true
     
     input:
-    tuple val(sample_name), path("inputs/")
+    tuple val(sample_name), path("inputs/*.sam.bz2")
 
     output:
     tuple val(sample_name), path("${sample_name}.sam.bz2")
@@ -228,7 +228,7 @@ process concat_bwt {
     publishDir "${params.output}/bowtie2/", mode: "copy", overwrite: true
     
     input:
-    tuple val(sample_name), path("inputs/")
+    tuple val(sample_name), path("inputs/*.bowtie2.bz2")
 
     output:
     tuple val(sample_name), path("${sample_name}.bowtie2.bz2"), emit: bowtie
