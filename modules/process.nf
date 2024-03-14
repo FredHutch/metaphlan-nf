@@ -205,7 +205,7 @@ process concat_sam {
 set -e
 echo STARTING
 find .
-if (( \$(find inputs -name '*.sam.bz2' | wc -l) == 1 )); then
+if (( \$(find inputs -name '*sam.bz2' | wc -l) == 1 )); then
     echo "Only a single SAM file found"
     cp inputs/*.sam.bz2 "${sample_name}.sam.bz2"
 else
@@ -237,7 +237,7 @@ process concat_bwt {
 set -e
 echo STARTING
 find .
-if (( \$(find inputs -name '*.bowtie2.bz2' | wc -l) == 1 )); then
+if (( \$(find inputs -name '*bowtie2.bz2' | wc -l) == 1 )); then
     echo "Only a single .bowtie2.bz2 file found"
     cp inputs/*.bowtie2.bz2 "${sample_name}.bowtie2.bz2"
 else
