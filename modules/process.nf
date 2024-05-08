@@ -112,16 +112,53 @@ set -e
 
 echo Processing sample : '${sample_name}'
 
+ARGS=""
+if [[ "${params.ignore_eukaryotes}" == "true" ]]; then
+    echo "Running with --ignore_eukaryotes"
+    ARGS="\$ARGS --ignore_eukaryotes"
+fi
+
+if [[ "${params.ignore_archaea}" == "true" ]]; then
+    echo "Running with --ignore_archaea"
+    ARGS="\$ARGS --ignore_archaea"
+fi
+
+if [[ "${params.ignore_bacteria}" == "true" ]]; then
+    echo "Running with --ignore_bacteria"
+    ARGS="\$ARGS --ignore_bacteria"
+fi
+
+if [[ "${params.unclassified_estimation}" == "true" ]]; then
+    echo "Running with --unclassified_estimation"
+    ARGS="\$ARGS --unclassified_estimation"
+fi
+
+if [[ "${params.add_viruses}" == "true" ]]; then
+    echo "Running with --add_viruses and --mpa3"
+    ARGS="\$ARGS --add_viruses --mpa3"
+else
+    if [[ "${params.mpa3}" == "true" ]]; then
+        echo "Running with --mpa3"
+        ARGS="\$ARGS --mpa3"
+    fi
+fi
+
 metaphlan \
     --nproc ${task.cpus} \
     --input_type bowtie2out \
     --biom ${sample_name}.biom \
-    -t rel_ab_w_read_stats \
-    --unclassified_estimation \
+    -t ${params.analysis_type} \
+    --min_mapq_val ${params.min_mapq_val} \
+    --tax_lev ${params.tax_lev} \
+    --min_cu_len ${params.min_cu_len} \
+    --stat_q ${params.stat_q} \
+    --perc_nonzero ${params.perc_nonzero} \
+    --stat ${params.stat} \
     --bowtie2db db \
     --index ${params.db.replaceAll(".*/", "")} \
     --sample_id_key "${sample_name}" \
     --sample_id "${sample_name}" \
+    \$ARGS \
     ${bowtie2out} \
     ${sample_name}.metaphlan
 
